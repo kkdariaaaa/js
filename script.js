@@ -1,29 +1,32 @@
-// Отримуємо всі кнопки та екран
-let buttons = document.querySelectorAll('button');
-let display = document.getElementById('display');
+const currencyContainer = document.getElementById('currency-container');
 
-// Додаємо обробник подій для кожної кнопки
-buttons.forEach(function(button) {
-  button.addEventListener('click', function(e) {
-    // Отримуємо значення кнопки
-    let value = e.target.innerText;
-
-    // Обробка різних типів кнопок
-    if (value === 'C') {
-      // Очищуємо екран
-      display.value = '';
-    } else if (value === '=') {
-      try {
-        // Обчислюємо вираз
-        display.value = eval(display.value);
-      } catch {
-        // Виводимо помилку, якщо вираз некоректний
-        display.value = 'Error';
-      }
-    } else {
-      // Додаємо значення кнопки до виразу
-      display.value += value;
+async function fetchCurrencyRates() {
+  try {
+    const response = await fetch('https://bank.gov.ua/NBUStatService/v1/statdirectory/exchange?json');
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
-  });
-});
+    const data = await response.json();
+    displayCurrencyRates(data);
+  } catch (error) {
+    currencyContainer.textContent = 'Could not fetch currency rates';
+  }
+}
 
+function displayCurrencyRates(rates) {
+  const heading = document.createElement('h1');
+  heading.textContent = 'Currency Rates';
+  currencyContainer.appendChild(heading);
+  
+  rates.forEach(rate => {
+    let currencyName = rate.txt;
+    if (currencyName === 'Російський рубль') {
+      currencyName = 'Валюта орків';
+    }
+    const currencyElement = document.createElement('p');
+    currencyElement.textContent = `${currencyName}: ${rate.rate}`;
+    currencyContainer.appendChild(currencyElement);
+  });
+}
+
+fetchCurrencyRates();
